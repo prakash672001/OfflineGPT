@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OfflineGPT - Detailed Architecture Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 3px solid #764ba2;
+            padding-bottom: 15px;
+        }
+        h2 {
+            color: #764ba2;
+            font-size: 1.8em;
+            margin: 30px 0 15px 0;
+            padding-left: 10px;
+            border-left: 5px solid #667eea;
+        }
+        h3 {
+            color: #667eea;
+            font-size: 1.3em;
+            margin: 20px 0 10px 0;
+        }
+        .section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+        .code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        .package-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .package-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+        .package-item h4 {
+            color: #764ba2;
+            margin-bottom: 8px;
+        }
+        .flow-diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px dashed #667eea;
+        }
+        .arrow {
+            color: #764ba2;
+            font-size: 1.5em;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .step {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 OfflineGPT - Complete Architecture Documentation</h1>
+        <p style="text-align: center; color: #666; font-size: 1.1em; margin: 15px 0;">
+            A Fully Offline AI Mobile Application with Local LLM Inference
+        </p>
+
+        <!-- OVERVIEW -->
+        <div class="section">
+            <h2>📋 Project Overview</h2>
+            <p><strong>Purpose:</strong> Run Large Language Models (LLM) completely offline on mobile devices without cloud dependency</p>
+            <p><strong>Platform:</strong> Cross-platform mobile (Android/iOS) using React Native</p>
+            <p><strong>Target Devices:</strong> 4GB RAM / 64GB Storage minimum</p>
+            <p><strong>Key Feature:</strong> 100% offline AI inference using on-device processing</p>
+        </div>
+
+        <!-- TECH STACK -->
+        <h2>🛠️ Technology Stack</h2>
+
+        <div class="package-list">
+            <div class="package-item">
+                <h4>React Native 0.74.2</h4>
+                <p>Core mobile framework for building cross-platform apps</p>
+                <span class="tag">Framework</span>
+            </div>
+            <div class="package-item">
+                <h4>Expo SDK 51</h4>
+                <p>Development platform and build system for React Native</p>
+                <span class="tag">Build System</span>
+            </div>
+            <div class="package-item">
+                <h4>llama.rn 0.3.2</h4>
+                <p>React Native wrapper for llama.cpp - enables on-device LLM inference</p>
+                <span class="tag">AI Core</span> <span class="tag">Critical</span>
+            </div>
+            <div class="package-item">
+                <h4>React Navigation 6.x</h4>
+                <p>Navigation library (Drawer + Stack navigators)</p>
+                <span class="tag">Navigation</span>
+            </div>
+            <div class="package-item">
+                <h4>AsyncStorage</h4>
+                <p>Local storage for user data, settings, and model metadata</p>
+                <span class="tag">Storage</span>
+            </div>
+            <div class="package-item">
+                <h4>Expo File System</h4>
+                <p>File downloads and management for AI models</p>
+                <span class="tag">File Management</span>
+            </div>
+        </div>
+
+        <!-- ARCHITECTURE DIAGRAM -->
+        <h2>🏗️ System Architecture</h2>
+
+        <div class="flow-diagram">
+            <h3 style="text-align: center; color: #764ba2;">Three-Layer Architecture</h3>
+
+            <div class="step">1. PRESENTATION LAYER (UI/Screens)</div>
+            <div class="arrow">⬇️</div>
+            <div class="step">2. BUSINESS LOGIC LAYER (Context Providers)</div>
+            <div class="arrow">⬇️</div>
+            <div class="step">3. DATA LAYER (AsyncStorage + File System + llama.rn)</div>
+        </div>
+
+        <!-- FOLDER STRUCTURE -->
+        <h2>📁 Project Structure</h2>
+        <div class="code">
+OfflineGPT/
+├── App.js                          # Entry point, navigation setup
+├── app.json                        # Expo configuration
+├── package.json                    # Dependencies
+├── eas.json                        # Build configuration
+│
+├── src/
+│   ├── context/                    # State Management (React Context API)
+│   │   ├── ThemeContext.js         # Dark/Light mode
+│   │   ├── AuthContext.js          # User authentication
+│   │   ├── ModelContext.js         # Model downloads & management
+│   │   └── ChatContext.js          # AI inference & chat logic
+│   │
+│   ├── screens/                    # UI Screens
+│   │   ├── LoginScreen.js          # Google sign-in
+│   │   ├── ChatScreen.js           # Main chat interface
+│   │   ├── ModelSelectScreen.js    # Model download page
+│   │   ├── SettingsScreen.js       # App settings
+│   │   ├── ProfileScreen.js        # User profile
+│   │   ├── SubscriptionScreen.js   # Subscription (dummy)
+│   │   └── AboutScreen.js          # About page
+│   │
+│   └── components/
+│       └── CustomDrawer.js         # Navigation drawer
+│
+└── assets/
+    └── icon.png                    # App icon (purple gradient)
+        </div>
+
+        <!-- MODEL DOWNLOAD FLOW -->
+        <h2>📥 Model Download & Storage Flow</h2>
+
+        <div class="highlight">
+            <h3>Where Models Are Downloaded:</h3>
+            <p><strong>Source:</strong> HuggingFace Model Repository</p>
+            <p><strong>Storage Location:</strong> <code>FileSystem.documentDirectory + 'models/'</code></p>
+            <p><strong>File Path Example:</strong> <code>/data/user/0/com.yourcompany.offlinegpt/files/models/qwen2.5-0.5b-instruct-q4_0.gguf</code></p>
+        </div>
+
+        <div class="section">
+            <h3>Download Process (Step-by-Step):</h3>
+            <div class="step" style="text-align: left;">
+                Step 1: User selects model from ModelSelectScreen
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 2: ModelContext.downloadModel() triggered
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 3: FileSystem.createDownloadResumable() starts download from HuggingFace
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 4: Progress callback updates UI (0-100%)
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 5: File saved to device storage in GGUF format
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 6: Model metadata stored in AsyncStorage
+            </div>
+        </div>
+
+        <div class="code">
+// Example Download Code (ModelContext.js)
+const downloadModel = async (model) => {
+  const modelDir = FileSystem.documentDirectory + 'models/';
+  const modelPath = modelDir + model.fileName;
+
+  // Create download resumable
+  const downloadResumable = FileSystem.createDownloadResumable(
+    model.downloadUrl,  // HuggingFace URL
+    modelPath,
+    {},
+    (progress) => {
+      const percent = (progress.totalBytesWritten /
+                      progress.totalBytesExpectedToWrite) * 100;
+      setDownloadProgress(percent);
+    }
+  );
+
+  await downloadResumable.downloadAsync();
+  await AsyncStorage.setItem('downloaded_model', model.id);
+};
+        </div>
+
+        <!-- AI INFERENCE FLOW -->
+        <h2>🧠 How AI Inference Works (Most Important)</h2>
+
+        <div class="highlight">
+            <h3>⚡ The Core AI Engine: llama.rn</h3>
+            <p><strong>What it does:</strong> Runs LLM inference directly on the mobile device CPU/GPU</p>
+            <p><strong>Based on:</strong> llama.cpp (C++ library for efficient LLM inference)</p>
+            <p><strong>Model Format:</strong> GGUF (quantized models optimized for mobile)</p>
+            <p><strong>Why it works offline:</strong> All computation happens on-device, no API calls needed</p>
+        </div>
+
+        <div class="section">
+            <h3>Inference Flow (When User Sends Message):</h3>
+
+            <div class="step" style="text-align: left;">
+                Step 1: User types message in ChatScreen
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 2: ChatContext.sendMessage() called
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 3: Check if LLM model is loaded in memory
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 4: If not loaded, initializeLlama() loads model from storage
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 5: llamaContext.completion() generates response
+            </div>
+            <div class="arrow">⬇️</div>
+            <div class="step" style="text-align: left;">
+                Step 6: AI response streamed back to UI in real-time
+            </div>
+        </div>
+
+        <div class="code">
+// AI Initialization (ChatContext.js)
+const initializeLlama = async () => {
+  const { initLlama } = await import('llama.rn');
+  const modelPath = FileSystem.documentDirectory +
+                    'models/' + selectedModel.fileName;
+
+  const context = await initLlama({
+    model: modelPath,           // Path to downloaded GGUF file
+    n_ctx: 2048,               // Context window size
+    n_batch: 512,              // Batch size for processing
+    n_threads: 4,              // CPU threads to use
+    use_mlock: true,           // Lock memory for performance
+    use_mmap: true,            // Memory-map file for efficiency
+  });
+
+  return context;
+};
+
+// Generate AI Response
+const sendMessage = async (userMessage) => {
+  const response = await llamaContext.completion({
+    messages: [
+      { role: 'system', content: 'You are a helpful assistant.' },
+      { role: 'user', content: userMessage }
+    ],
+    n_predict: 512,            // Max tokens to generate
+    temperature: 0.7,          // Creativity (0-1)
+    top_p: 0.9,               // Nucleus sampling
+  });
+
+  return response.text;
+};
+        </div>
+
+        <!-- AVAILABLE MODELS -->
+        <h2>🤖 Available AI Models</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Name</th>
+                    <th>Size</th>
+                    <th>Parameters</th>
+                    <th>Recommended For</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Qwen 2.5 0.5B</strong> ⭐</td>
+                    <td>400 MB</td>
+                    <td>0.5 Billion</td>
+                    <td>4GB RAM devices - Fastest</td>
+                </tr>
+                <tr>
+                    <td>Phi-3 Mini</td>
+                    <td>2.3 GB</td>
+                    <td>3.8 Billion</td>
+                    <td>Balanced speed/quality</td>
+                </tr>
+                <tr>
+                    <td>TinyLlama 1.1B</td>
+                    <td>600 MB</td>
+                    <td>1.1 Billion</td>
+                    <td>Fast responses</td>
+                </tr>
+                <tr>
+                    <td>Gemma 2B</td>
+                    <td>1.6 GB</td>
+                    <td>2 Billion</td>
+                    <td>Google's efficient model</td>
+                </tr>
+                <tr>
+                    <td>StableLM 2 1.6B</td>
+                    <td>1.2 GB</td>
+                    <td>1.6 Billion</td>
+                    <td>Stability AI model</td>
+                </tr>
+                <tr>
+                    <td>Llama 3.2 1B</td>
+                    <td>1.3 GB</td>
+                    <td>1 Billion</td>
+                    <td>Meta's latest small model</td>
+                </tr>
+                <tr>
+                    <td>MobileLLM 125M</td>
+                    <td>100 MB</td>
+                    <td>125 Million</td>
+                    <td>Ultra-lightweight</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- CONTEXT PROVIDERS -->
+        <h2>🔄 Context Providers (State Management)</h2>
+
+        <div class="package-list">
+            <div class="package-item">
+                <h4>ThemeContext</h4>
+                <p><strong>Purpose:</strong> Dark/Light mode toggle</p>
+                <p><strong>Storage:</strong> AsyncStorage</p>
+                <p><strong>State:</strong> isDarkMode, colors, toggleTheme()</p>
+            </div>
+            <div class="package-item">
+                <h4>AuthContext</h4>
+                <p><strong>Purpose:</strong> User authentication (Google)</p>
+                <p><strong>Storage:</strong> AsyncStorage</p>
+                <p><strong>State:</strong> user, isAuthenticated, login(), logout()</p>
+            </div>
+            <div class="package-item">
+                <h4>ModelContext</h4>
+                <p><strong>Purpose:</strong> Model download & management</p>
+                <p><strong>Storage:</strong> FileSystem + AsyncStorage</p>
+                <p><strong>State:</strong> availableModels, selectedModel, downloadModel()</p>
+            </div>
+            <div class="package-item">
+                <h4>ChatContext</h4>
+                <p><strong>Purpose:</strong> AI inference & chat history</p>
+                <p><strong>Storage:</strong> AsyncStorage + llama.rn</p>
+                <p><strong>State:</strong> messages, sendMessage(), clearChat()</p>
+            </div>
+        </div>
+
+        <!-- BUILD PROCESS -->
+        <h2>🔨 Build Process</h2>
+
+        <div class="section">
+            <h3>Development vs Production:</h3>
+
+            <table>
+                <tr>
+                    <th>Aspect</th>
+                    <th>Development (Expo Go)</th>
+                    <th>Production (Standalone APK)</th>
+                </tr>
+                <tr>
+                    <td>Testing Method</td>
+                    <td>Expo Go app on phone</td>
+                    <td>Install APK directly</td>
+                </tr>
+                <tr>
+                    <td>AI Functionality</td>
+                    <td>Mock responses only</td>
+                    <td>Real AI with llama.rn</td>
+                </tr>
+                <tr>
+                    <td>Build Command</td>
+                    <td><code>npx expo start</code></td>
+                    <td><code>eas build --platform android</code></td>
+                </tr>
+                <tr>
+                    <td>Hot Reload</td>
+                    <td>✅ Yes</td>
+                    <td>❌ No (rebuild needed)</td>
+                </tr>
+                <tr>
+                    <td>Native Modules</td>
+                    <td>❌ Not supported</td>
+                    <td>✅ Fully supported</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="highlight">
+            <h3>Why llama.rn Only Works in APK:</h3>
+            <p>llama.rn is a <strong>native module</strong> that requires C++ compilation. Expo Go is a generic sandbox app that doesn't include custom native code. Therefore:</p>
+            <ul style="margin-left: 25px; margin-top: 10px;">
+                <li>Development testing uses mock AI responses</li>
+                <li>Production APK includes compiled llama.rn native library</li>
+                <li>EAS Build compiles C++ code and creates standalone APK</li>
+            </ul>
+        </div>
+
+        <!-- DATA FLOW -->
+        <h2>📊 Complete Data Flow Diagram</h2>
+
+        <div class="code" style="background: white; color: #333; border: 2px solid #667eea;">
+USER INTERACTION
+      ↓
+[ChatScreen UI]
+      ↓
+ChatContext.sendMessage()
+      ↓
+Check if model loaded? ──NO──→ initializeLlama()
+      ↓                              ↓
+     YES                    Load from FileSystem
+      ↓                              ↓
+      ↓ ←──────────────────────────┘
+      ↓
+llamaContext.completion()
+      ↓
+[llama.rn Native Module]
+      ↓
+[llama.cpp C++ Engine]
+      ↓
+[GGUF Model File Processing]
+      ↓
+[Token Generation on Device CPU/GPU]
+      ↓
+Response Text Streamed Back
+      ↓
+ChatContext Updates State
+      ↓
+UI Re-renders with AI Response
+      ↓
+Save to AsyncStorage (chat history)
+        </div>
+
+        <!-- PERFORMANCE -->
+        <h2>⚡ Performance Optimization</h2>
+
+        <div class="package-list">
+            <div class="package-item">
+                <h4>Model Quantization</h4>
+                <p>Models use Q4_0 quantization (4-bit) reducing size by 75% with minimal quality loss</p>
+            </div>
+            <div class="package-item">
+                <h4>Memory Mapping</h4>
+                <p>use_mmap: true loads model without consuming RAM entirely</p>
+            </div>
+            <div class="package-item">
+                <h4>Multi-threading</h4>
+                <p>n_threads: 4 utilizes multiple CPU cores for faster inference</p>
+            </div>
+            <div class="package-item">
+                <h4>Context Caching</h4>
+                <p>Model stays loaded in memory between messages for instant responses</p>
+            </div>
+        </div>
+
+        <!-- KEY FEATURES -->
+        <h2>✨ Key Features Implemented</h2>
+
+        <div class="section">
+            <ul style="margin-left: 25px;">
+                <li>✅ <strong>Offline AI Chat:</strong> Complete LLM inference on device</li>
+                <li>✅ <strong>Model Management:</strong> Download, select, and switch between 7 models</li>
+                <li>✅ <strong>Google Authentication:</strong> Mock login with beautiful UI</li>
+                <li>✅ <strong>Dark/Light Mode:</strong> Persistent theme switching</li>
+                <li>✅ <strong>Chat History:</strong> Save and restore conversations</li>
+                <li>✅ <strong>Custom Drawer:</strong> Beautiful navigation with user info</li>
+                <li>✅ <strong>Settings Page:</strong> Configure app preferences</li>
+                <li>✅ <strong>Subscription Page:</strong> Dummy subscription UI</li>
+                <li>✅ <strong>Beautiful Icons:</strong> Purple gradient chat bubble design</li>
+                <li>✅ <strong>Progress Tracking:</strong> Real-time model download progress</li>
+            </ul>
+        </div>
+
+        <!-- DEPLOYMENT -->
+        <h2>🚀 Deployment Information</h2>
+
+        <div class="section">
+            <h3>Build Configuration:</h3>
+            <div class="code">
+// eas.json
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      }
+    }
+  }
+}
+            </div>
+
+            <h3>Build Command:</h3>
+            <div class="code">
+eas build --platform android --profile preview
+            </div>
+
+            <h3>Output:</h3>
+            <p>Standalone APK file (~50MB) ready for installation on any Android device</p>
+        </div>
+
+        <!-- DEPENDENCIES -->
+        <h2>📦 Complete Dependencies List</h2>
+
+        <div class="code">
+{
+  "dependencies": {
+    "expo": "~51.0.0",
+    "expo-status-bar": "~1.12.1",
+    "react": "18.2.0",
+    "react-native": "0.74.2",
+    "llama.rn": "^0.3.2",                    // AI Engine
+    "@react-navigation/native": "^6.1.7",    // Navigation
+    "@react-navigation/drawer": "^6.6.3",
+    "@react-navigation/stack": "^6.3.17",
+    "react-native-screens": "~3.31.1",
+    "react-native-safe-area-context": "4.10.1",
+    "react-native-gesture-handler": "~2.16.1",
+    "react-native-reanimated": "~3.10.1",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "expo-file-system": "~17.0.1"
+  }
+}
+        </div>
+
+        <!-- SECURITY -->
+        <h2>🔒 Security & Privacy</h2>
+
+        <div class="highlight">
+            <ul style="margin-left: 25px;">
+                <li><strong>100% Offline:</strong> No data sent to external servers</li>
+                <li><strong>Local Storage:</strong> All user data stored on device only</li>
+                <li><strong>No Analytics:</strong> No tracking or telemetry</li>
+                <li><strong>Open Source Models:</strong> Models from HuggingFace (trusted source)</li>
+                <li><strong>Mock Authentication:</strong> Google login UI (not real OAuth yet)</li>
+            </ul>
+        </div>
+
+        <!-- LIMITATIONS -->
+        <h2>⚠️ Current Limitations</h2>
+
+        <div class="section">
+            <ul style="margin-left: 25px;">
+                <li>Requires standalone APK to test real AI (not Expo Go)</li>
+                <li>First response takes 10-15 seconds (model loading)</li>
+                <li>Limited to smaller models on 4GB RAM devices</li>
+                <li>No real Google OAuth (mock login only)</li>
+                <li>No cloud sync (all data local)</li>
+                <li>Android only (iOS requires separate build)</li>
+            </ul>
+        </div>
+
+        <!-- FUTURE ENHANCEMENTS -->
+        <h2>🔮 Potential Future Enhancements</h2>
+
+        <div class="section">
+            <ul style="margin-left: 25px;">
+                <li>Real Google OAuth integration</li>
+                <li>Cloud backup for chat history</li>
+                <li>Voice input/output</li>
+                <li>Image generation models</li>
+                <li>Multi-modal support (vision models)</li>
+                <li>Model fine-tuning capabilities</li>
+                <li>Shared chat links</li>
+                <li>iOS build</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 50px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; text-align: center;">
+            <h3>📱 OfflineGPT - Bringing AI to Your Pocket, No Internet Required</h3>
+            <p style="margin-top: 10px;">Built with React Native + Expo + llama.rn</p>
+        </div>
+    </div>
+</body>
+</html>
