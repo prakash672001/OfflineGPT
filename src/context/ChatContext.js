@@ -242,8 +242,10 @@ export function ChatProvider({ children }) {
     if (!content.trim()) return;
 
     let conversation = currentConversation;
+    let isNewConversation = false;
     if (!conversation) {
-      conversation = await createNewConversation(content.slice(0, 30) + '...');
+      conversation = await createNewConversation(content.slice(0, 30) + (content.length > 30 ? '...' : ''));
+      isNewConversation = true;
     }
 
     const userMessage = {
@@ -261,8 +263,8 @@ export function ChatProvider({ children }) {
       await saveMessages(conversation.id, newMessages);
     }
 
-    // Update conversation title if first message
-    if (messages.length === 0 && !conversation.isIncognito) {
+    // Update conversation title if first message (but NOT if conversation was just created — it already has the title)
+    if (messages.length === 0 && !conversation.isIncognito && !isNewConversation) {
       const title = content.slice(0, 30) + (content.length > 30 ? '...' : '');
       await updateConversationTitle(conversation.id, title);
     }
