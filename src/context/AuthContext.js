@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AuthContext = createContext();
 
+const API_BASE = 'https://offlinegpt.ai/api/auth';
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,40 +45,76 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const signIn = async (userData) => {
-    try {
-      await AsyncStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-      setIsAuthenticated(true);
-      return true;
-    } catch (error) {
-      console.log('Error signing in:', error);
-      return false;
+  // Real API: Sign Up
+  const signUp = async ({ name, email, password }) => {
+    const response = await fetch(`${API_BASE}/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create account');
     }
+
+    return data; // { message, userId, emailSent }
   };
 
-  const signInWithCredentials = async ({ email, password, name, isNewUser }) => {
-    const mockUser = {
-      id: 'local_user_' + Date.now(),
-      email,
-      name: isNewUser ? name : 'User',
-      photo: null,
-      provider: 'local',
-    };
-    
-    // Set subscription flag: false if new user, true if login
-    if (isNewUser) {
-      await AsyncStorage.setItem('@seen_subscription', 'false');
-      setHasSeenSubscription(false);
-    } else {
-      await AsyncStorage.setItem('@seen_subscription', 'true');
-      setHasSeenSubscription(true);
+  // Real API: Login
+  const login = async ({ email, password }) => {
+    const response = await fetch(`${API_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier: email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(data.error || 'Failed to login');
+      error.status = response.status;
+      throw error;
     }
-    
-    return signIn(mockUser);
+
+    // Save user data locally
+    const userData = data.user;
+    await AsyncStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    setIsAuthenticated(true);
+
+    // New user who hasn't seen subscription yet
+    await AsyncStorage.setItem('@seen_subscription', 'false');
+    setHasSeenSubscription(false);
+
+    return userData;
+  };
+
+  // Real API: Resend Verification Email
+  const resendVerification = async (email) => {
+    const response = await fetch(`${API_BASE}/resend-verification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier: email }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to resend verification');
+    }
+
+    return data;
   };
 
   const signOut = async () => {
+    try {
+      // Call server logout to destroy session
+      await fetch(`${API_BASE}/logout`, { method: 'POST' });
+    } catch (error) {
+      console.log('Logout API error (continuing anyway):', error);
+    }
     try {
       await AsyncStorage.removeItem('user');
       setUser(null);
@@ -103,8 +141,9 @@ export function AuthProvider({ children }) {
         isLoading,
         isAuthenticated,
         hasSeenSubscription,
-        signIn,
-        signInWithCredentials,
+        signUp,
+        login,
+        resendVerification,
         signOut,
         updateProfile,
         markSubscriptionSeen,

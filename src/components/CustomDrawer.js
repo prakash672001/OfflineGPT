@@ -256,10 +256,10 @@ export default function CustomDrawer({ navigation }) {
           onPress={() => navigation.navigate('Profile')}
           activeOpacity={0.7}
         >
-          <Avatar name={user?.name || 'User'} size={36} />
+          <Avatar name={user?.firstName || 'User'} size={36} />
           <View style={styles.userInfo}>
             <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
-              {user?.name || 'User'}
+              {user?.firstName || 'User'}
             </Text>
             <View style={styles.statusRow}>
               <View style={[styles.statusDot, { backgroundColor: COLORS.success }]} />

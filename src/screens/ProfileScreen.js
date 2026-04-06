@@ -72,13 +72,13 @@ export default function ProfileScreen({ navigation }) {
               ) : (
                 <View style={[styles.avatar, { backgroundColor: '#fff' }]}>
                   <Text style={[styles.avatarText, { color: COLORS.logoGradient.start }]}>
-                    {user?.name?.charAt(0) || 'U'}
+                    {user?.firstName?.charAt(0) || 'U'}
                   </Text>
                 </View>
               )}
               <View style={styles.onlineBadge} />
             </View>
-            <Text style={styles.userName}>{user?.name || 'User'}</Text>
+            <Text style={styles.userName}>{user?.firstName || 'User'}</Text>
             <Text style={styles.userEmail}>{user?.email || 'user@email.com'}</Text>
 
             {/* Current Model */}
