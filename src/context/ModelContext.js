@@ -4,104 +4,146 @@ import * as FileSystem from 'expo-file-system';
 
 const ModelContext = createContext();
 
-// Best models for 4GB RAM devices (ordered by quality/speed balance)
 export const AVAILABLE_MODELS = [
   {
-    id: 'qwen2.5-0.5b',
-    name: 'Qwen 2.5 0.5B',
-    description: 'Ultra-fast, great for quick responses',
-    size: '400 MB',
-    sizeBytes: 400 * 1024 * 1024,
-    ramRequired: '1 GB',
-    quality: 3,
+    id: 'llama-3.2-3b-instruct',
+    name: 'Llama-3.2-3B-Instruct (Q6_K)',
+    description: 'Lite - Fast, efficient general purpose model',
+    size: '2.64 GB',
+    sizeBytes: 2.64 * 1024 * 1024 * 1024,
+    ramRequired: '4 GB',
+    quality: 4,
     speed: 5,
     recommended: true,
-    downloadUrl: 'https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf',
-    filename: 'qwen2.5-0.5b-instruct-q4_k_m.gguf',
+    downloadUrl: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K.gguf',
+    filename: 'Llama-3.2-3B-Instruct-Q6_K.gguf',
+    category: 'Lite',
   },
   {
-    id: 'smollm2-1.7b',
-    name: 'SmolLM2 1.7B',
-    description: 'Best balance of size and intelligence',
-    size: '1.0 GB',
-    sizeBytes: 1024 * 1024 * 1024,
+    id: 'phi-3.5-mini-instruct',
+    name: 'Phi-3.5-mini-instruct (Q4_K_M)',
+    description: 'Pro - Microsoft\'s highly capable reasoning model',
+    size: '2.39 GB',
+    sizeBytes: 2.39 * 1024 * 1024 * 1024,
+    ramRequired: '4 GB',
+    quality: 4,
+    speed: 4,
+    recommended: true,
+    downloadUrl: 'https://huggingface.co/MaziyarPanahi/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct.Q4_K_M.gguf',
+    filename: 'Phi-3.5-mini-instruct.Q4_K_M.gguf',
+    category: 'Pro',
+  },
+  {
+    id: 'qwen2.5-3b-instruct',
+    name: 'Qwen2.5-3B-Instruct (Q5_K_M)',
+    description: 'Thinking - Advanced reasoning and coding capabilities',
+    size: '2.44 GB',
+    sizeBytes: 2.44 * 1024 * 1024 * 1024,
+    ramRequired: '4 GB',
+    quality: 5,
+    speed: 3,
+    recommended: true,
+    downloadUrl: 'https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q5_k_m.gguf',
+    filename: 'qwen2.5-3b-instruct-q5_k_m.gguf',
+    category: 'Thinking',
+  },
+];
+
+export const DOWNLOADABLE_MODELS = [
+  {
+    id: 'qwen2.5-1.5b-instruct-q8',
+    name: 'Qwen2.5-1.5B-Instruct (Q8_0)',
+    size: '1.80 GB',
     ramRequired: '2 GB',
-    quality: 4,
-    speed: 4,
-    recommended: true,
-    downloadUrl: 'https://huggingface.co/HuggingFaceTB/SmolLM2-1.7B-Instruct-GGUF/resolve/main/smollm2-1.7b-instruct-q4_k_m.gguf',
-    filename: 'smollm2-1.7b-instruct-q4_k_m.gguf',
+    downloadUrl: 'https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q8_0.gguf',
+    filename: 'qwen2.5-1.5b-instruct-q8_0.gguf',
   },
   {
-    id: 'llama3.2-1b',
-    name: 'Llama 3.2 1B',
-    description: 'Meta\'s mobile-optimized model',
-    size: '700 MB',
-    sizeBytes: 700 * 1024 * 1024,
-    ramRequired: '1.5 GB',
-    quality: 4,
-    speed: 5,
-    recommended: true,
-    downloadUrl: 'https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf',
-    filename: 'Llama-3.2-1B-Instruct-Q4_K_M.gguf',
+    id: 'llama-3.2-1b-instruct-q8',
+    name: 'Llama-3.2-1B-Instruct (Q8_0)',
+    size: '1.32 GB',
+    ramRequired: '2 GB',
+    downloadUrl: 'https://huggingface.co/hugging-quants/Llama-3.2-1B-Instruct-Q8_0-GGUF/resolve/main/llama-3.2-1b-instruct-q8_0.gguf',
+    filename: 'llama-3.2-1b-instruct-q8_0.gguf',
   },
   {
-    id: 'llama3.2-3b',
-    name: 'Llama 3.2 3B',
-    description: 'Higher quality, needs more RAM',
-    size: '2.0 GB',
-    sizeBytes: 2048 * 1024 * 1024,
-    ramRequired: '3 GB',
-    quality: 5,
-    speed: 3,
-    recommended: false,
-    downloadUrl: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf',
-    filename: 'Llama-3.2-3B-Instruct-Q4_K_M.gguf',
+    id: 'smollm2-1.7b-instruct-q8',
+    name: 'SmolLM2-1.7B-Instruct (Q8_0)',
+    size: '1.82 GB',
+    ramRequired: '2 GB',
+    downloadUrl: 'https://huggingface.co/bartowski/SmolLM2-1.7B-Instruct-GGUF/resolve/main/SmolLM2-1.7B-Instruct-Q8_0.gguf',
+    filename: 'SmolLM2-1.7B-Instruct-Q8_0.gguf',
   },
   {
-    id: 'phi3-mini',
-    name: 'Phi-3 Mini 3.8B',
-    description: 'Microsoft\'s efficient reasoning model',
-    size: '2.3 GB',
-    sizeBytes: 2300 * 1024 * 1024,
-    ramRequired: '3.5 GB',
-    quality: 5,
-    speed: 3,
-    recommended: false,
-    downloadUrl: 'https://huggingface.co/microsoft/Phi-3-mini-4k-instruct-gguf/resolve/main/Phi-3-mini-4k-instruct-q4.gguf',
-    filename: 'Phi-3-mini-4k-instruct-q4.gguf',
+    id: 'smolvlm-500m-instruct-q8',
+    name: 'SmolVLM-500M-Instruct (Q8_0)',
+    size: '436.81 MB',
+    ramRequired: '2 GB',
+    downloadUrl: 'https://huggingface.co/ggml-org/SmolVLM-500M-Instruct-GGUF/resolve/main/SmolVLM-500M-Instruct-Q8_0.gguf',
+    filename: 'SmolVLM-500M-Instruct-Q8_0.gguf',
   },
   {
-    id: 'tinyllama-1.1b',
-    name: 'TinyLlama 1.1B',
-    description: 'Compact and fast for basic tasks',
-    size: '700 MB',
-    sizeBytes: 700 * 1024 * 1024,
-    ramRequired: '1.5 GB',
-    quality: 3,
-    speed: 5,
-    recommended: false,
-    downloadUrl: 'https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf',
-    filename: 'tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf',
+    id: 'gemma-3n-e2b-it',
+    name: 'Gemma 3n E2B (Q8_0)',
+    size: '4.46 GB',
+    ramRequired: '6 GB',
+    downloadUrl: 'https://huggingface.co/ggml-org/gemma-3n-E2B-it-GGUF/resolve/main/gemma-3n-E2B-it-Q8_0.gguf',
+    filename: 'gemma-3n-E2B-it-Q8_0.gguf',
   },
   {
-    id: 'gemma-2b',
-    name: 'Gemma 2B',
-    description: 'Google\'s lightweight open model',
-    size: '1.5 GB',
-    sizeBytes: 1500 * 1024 * 1024,
-    ramRequired: '2.5 GB',
-    quality: 4,
-    speed: 4,
-    recommended: false,
-    downloadUrl: 'https://huggingface.co/google/gemma-2b-it-GGUF/resolve/main/gemma-2b-it-q4_k_m.gguf',
-    filename: 'gemma-2b-it-q4_k_m.gguf',
+    id: 'gemma-3n-e4b-it',
+    name: 'Gemma 3n E4B (Q4_K_M)',
+    size: '4.23 GB',
+    ramRequired: '6 GB',
+    downloadUrl: 'https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF/resolve/main/gemma-3n-E4B-it-Q4_K_M.gguf',
+    filename: 'gemma-3n-E4B-it-Q4_K_M.gguf',
   },
+  {
+    id: 'gemma-4-e2b-it',
+    name: 'Gemma 4 E2B (Q6_K)',
+    size: '4.19 GB',
+    ramRequired: '6 GB',
+    downloadUrl: 'https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q6_K.gguf',
+    filename: 'gemma-4-E2B-it-Q6_K.gguf',
+  },
+  {
+    id: 'gemma-4-e4b-it',
+    name: 'Gemma 4 E4B (Q4_K_M)',
+    size: '4.64 GB',
+    ramRequired: '6 GB',
+    downloadUrl: 'https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf',
+    filename: 'gemma-4-E4B-it-Q4_K_M.gguf',
+  },
+  {
+    id: 'gemma-2-2b-it-q6',
+    name: 'Gemma-2-2B-it (Q6_K)',
+    size: '2.15 GB',
+    ramRequired: '4 GB',
+    downloadUrl: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q6_K.gguf',
+    filename: 'gemma-2-2b-it-Q6_K.gguf',
+  },
+  {
+    id: 'gemmasutra-mini-2b-v1-q6',
+    name: 'Gemmasutra-Mini-2B-v1 (Q6_K)',
+    size: '2.15 GB',
+    ramRequired: '4 GB',
+    downloadUrl: 'https://huggingface.co/TheDrummer/Gemmasutra-Mini-2B-v1-GGUF/resolve/main/Gemmasutra-Mini-2B-v1-Q6_K.gguf',
+    filename: 'Gemmasutra-Mini-2B-v1-Q6_K.gguf',
+  },
+  {
+    id: 'gemma-2-9b-it-q4',
+    name: 'Gemma-2-9B-it (Q4_K_M)',
+    size: '5.62 GB',
+    ramRequired: '8 GB',
+    downloadUrl: 'https://huggingface.co/bartowski/gemma-2-9b-it-GGUF/resolve/main/gemma-2-9b-it-Q4_K_M.gguf',
+    filename: 'gemma-2-9b-it-Q4_K_M.gguf',
+  }
 ];
 
 export function ModelProvider({ children }) {
   const [selectedModel, setSelectedModel] = useState(null);
   const [downloadedModels, setDownloadedModels] = useState([]);
+  const [customModels, setCustomModels] = useState([]);
   const [downloadProgress, setDownloadProgress] = useState({});
   const [isDownloading, setIsDownloading] = useState(false);
   const [currentDownloadId, setCurrentDownloadId] = useState(null);
@@ -126,6 +168,12 @@ export function ModelProvider({ children }) {
       const savedModels = await AsyncStorage.getItem('downloadedModels');
       if (savedModels) {
         setDownloadedModels(JSON.parse(savedModels));
+      }
+
+      // Load custom models
+      const savedCustomModels = await AsyncStorage.getItem('customModels');
+      if (savedCustomModels) {
+        setCustomModels(JSON.parse(savedCustomModels));
       }
 
       // Load selected model
@@ -163,12 +211,28 @@ export function ModelProvider({ children }) {
 
       setDownloadTask(downloadResumable);
 
-      const { uri } = await downloadResumable.downloadAsync();
+      const { uri, status } = await downloadResumable.downloadAsync();
+
+      if (status !== 200) {
+        await FileSystem.deleteAsync(downloadPath, { idempotent: true });
+        throw new Error(`Download failed with status ${status}`);
+      }
 
       // Add to downloaded models
       const newDownloaded = [...downloadedModels, model.id];
       setDownloadedModels(newDownloaded);
       await AsyncStorage.setItem('downloadedModels', JSON.stringify(newDownloaded));
+
+      // If it's a custom model (not in AVAILABLE_MODELS), save it in customModels
+      const isBuiltIn = AVAILABLE_MODELS.some(m => m.id === model.id);
+      if (!isBuiltIn) {
+        const isAlreadyCustom = customModels.some(m => m.id === model.id);
+        if (!isAlreadyCustom) {
+          const newCustoms = [...customModels, model];
+          setCustomModels(newCustoms);
+          await AsyncStorage.setItem('customModels', JSON.stringify(newCustoms));
+        }
+      }
 
       setIsDownloading(false);
       setCurrentDownloadId(null);
@@ -189,10 +253,13 @@ export function ModelProvider({ children }) {
   const stopDownload = async () => {
     try {
       if (downloadTask) {
-        await downloadTask.pauseAsync();
+        await downloadTask.cancelAsync();
         // Clean up partial download
         if (currentDownloadId) {
-          const model = AVAILABLE_MODELS.find((m) => m.id === currentDownloadId);
+          let model = AVAILABLE_MODELS.find((m) => m.id === currentDownloadId);
+          if (!model) {
+            model = DOWNLOADABLE_MODELS.find((m) => m.id === currentDownloadId);
+          }
           if (model) {
             const downloadPath = modelsDir + model.filename;
             await FileSystem.deleteAsync(downloadPath, { idempotent: true });
@@ -223,7 +290,11 @@ export function ModelProvider({ children }) {
 
   const deleteModel = async (modelId) => {
     try {
-      const model = AVAILABLE_MODELS.find((m) => m.id === modelId);
+      let model = AVAILABLE_MODELS.find((m) => m.id === modelId);
+      if (!model) {
+        model = customModels.find((m) => m.id === modelId);
+      }
+      
       if (model) {
         const modelPath = modelsDir + model.filename;
         await FileSystem.deleteAsync(modelPath, { idempotent: true });
@@ -231,6 +302,12 @@ export function ModelProvider({ children }) {
         const newDownloaded = downloadedModels.filter((id) => id !== modelId);
         setDownloadedModels(newDownloaded);
         await AsyncStorage.setItem('downloadedModels', JSON.stringify(newDownloaded));
+
+        if (!AVAILABLE_MODELS.some(m => m.id === modelId)) {
+          const newCustoms = customModels.filter(m => m.id !== modelId);
+          setCustomModels(newCustoms);
+          await AsyncStorage.setItem('customModels', JSON.stringify(newCustoms));
+        }
 
         if (selectedModel?.id === modelId) {
           setSelectedModel(null);
@@ -267,6 +344,7 @@ export function ModelProvider({ children }) {
         getModelPath,
         isModelDownloaded,
         availableModels: AVAILABLE_MODELS,
+        customModels,
       }}
     >
       {children}

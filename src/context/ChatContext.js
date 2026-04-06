@@ -19,13 +19,15 @@ export function ChatProvider({ children }) {
   const [llamaContext, setLlamaContext] = useState(null);
   const { selectedModel, getModelPath, setModelLoaded } = useModel();
   const abortController = useRef(null);
+  const currentlyLoadedId = useRef(null);
 
   useEffect(() => {
     loadConversations();
   }, []);
 
   useEffect(() => {
-    if (currentConversation) {
+    if (currentConversation && currentConversation.id !== currentlyLoadedId.current) {
+      currentlyLoadedId.current = currentConversation.id;
       loadMessages(currentConversation.id);
     }
   }, [currentConversation]);
@@ -100,6 +102,7 @@ export function ChatProvider({ children }) {
       await saveConversations(newConversations);
     }
 
+    currentlyLoadedId.current = newConversation.id;
     setCurrentConversation(newConversation);
     setMessages([]);
 
@@ -210,6 +213,7 @@ export function ChatProvider({ children }) {
   const createMockContext = () => {
     return {
       completion: async (params, callback) => {
+        const signal = params.signal;
         const responses = [
           "I'm OfflineGPT, your AI assistant that runs completely on your device! I can help you with questions, creative writing, coding, and more - all without needing an internet connection.",
           "That's a great question! Let me think about this carefully and provide you with a helpful response.",
@@ -220,13 +224,16 @@ export function ChatProvider({ children }) {
         const response = responses[Math.floor(Math.random() * responses.length)];
 
         for (let i = 0; i < response.length; i++) {
+          if (signal?.aborted) break;
           await new Promise((resolve) => setTimeout(resolve, 20));
+          if (signal?.aborted) break;
           callback({ token: response[i] });
         }
 
         return { text: response };
       },
       release: () => {},
+      stopCompletion: () => {},
     };
   };
 
@@ -260,6 +267,7 @@ export function ChatProvider({ children }) {
       await updateConversationTitle(conversation.id, title);
     }
 
+    abortController.current = new AbortController();
     setIsGenerating(true);
 
     try {
@@ -292,8 +300,10 @@ export function ChatProvider({ children }) {
           temperature: 0.7,
           top_p: 0.9,
           stop: ['</s>', '<|end|>', '<|eot_id|>', 'User:', '\nUser:'],
+          signal: abortController.current.signal,
         },
         (token) => {
+          if (abortController.current?.signal.aborted) return;
           fullResponse += token.token;
           setMessages((prev) =>
             prev.map((msg) =>
@@ -351,6 +361,9 @@ export function ChatProvider({ children }) {
   const stopGeneration = () => {
     if (abortController.current) {
       abortController.current.abort();
+    }
+    if (llamaContext?.stopCompletion) {
+        llamaContext.stopCompletion();
     }
     setIsGenerating(false);
   };

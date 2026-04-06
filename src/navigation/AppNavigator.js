@@ -17,6 +17,7 @@ import ChatScreen from '../screens/ChatScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
+import DownloadModelsScreen from '../screens/DownloadModelsScreen';
 import AboutScreen from '../screens/AboutScreen';
 import ToolsHubScreen from '../screens/ToolsHubScreen';
 
@@ -87,6 +88,23 @@ function MainStack() {
       <Stack.Screen name="EmailTemplates" component={EmailTemplatesScreen} />
       <Stack.Screen name="Reminders" component={RemindersScreen} />
       <Stack.Screen name="Translator" component={TranslatorScreen} />
+      <Stack.Screen name="DownloadModels" component={DownloadModelsScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function ModelSetupStack() {
+  const { theme } = useTheme();
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+        contentStyle: { backgroundColor: theme.background },
+      }}
+    >
+      <Stack.Screen name="ModelSelect" component={ModelSelectScreen} />
+      <Stack.Screen name="DownloadModels" component={DownloadModelsScreen} />
     </Stack.Navigator>
   );
 }
@@ -129,7 +147,7 @@ function AuthStack() {
 }
 
 export default function AppNavigator() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, hasSeenSubscription } = useAuth();
   const { selectedModel, downloadedModels } = useModel();
   const { theme } = useTheme();
 
@@ -149,8 +167,10 @@ export default function AppNavigator() {
     >
       {!isAuthenticated ? (
         <Stack.Screen name="Auth" component={AuthStack} />
+      ) : !hasSeenSubscription ? (
+        <Stack.Screen name="SubscriptionSetup" component={SubscriptionScreen} />
       ) : needsModelSetup ? (
-        <Stack.Screen name="ModelSetup" component={ModelSelectScreen} />
+        <Stack.Screen name="ModelSetup" component={ModelSetupStack} />
       ) : (
         <Stack.Screen name="Main" component={MainStack} />
       )}

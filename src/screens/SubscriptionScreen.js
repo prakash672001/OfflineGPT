@@ -9,204 +9,189 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { GeminiLogo } from '../components/common';
+import { COLORS } from '../config/theme';
 
 const { width } = Dimensions.get('window');
 
-const PLANS = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: '$0',
-    period: 'forever',
-    description: 'Basic access to offline AI',
-    features: [
-      { text: '2 AI models', included: true },
-      { text: 'Basic chat features', included: true },
-      { text: 'Local processing', included: true },
-      { text: 'Unlimited messages', included: true },
-      { text: 'Priority support', included: false },
-      { text: 'Advanced models', included: false },
-    ],
-    popular: false,
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: '$9.99',
-    period: '/month',
-    description: 'Everything you need for power users',
-    features: [
-      { text: 'All AI models', included: true },
-      { text: 'Advanced chat features', included: true },
-      { text: 'Local processing', included: true },
-      { text: 'Unlimited messages', included: true },
-      { text: 'Priority support', included: true },
-      { text: 'Early access to new models', included: true },
-    ],
-    popular: true,
-  },
-  {
-    id: 'lifetime',
-    name: 'Lifetime',
-    price: '$99',
-    period: 'one-time',
-    description: 'Pay once, use forever',
-    features: [
-      { text: 'All Pro features', included: true },
-      { text: 'Lifetime updates', included: true },
-      { text: 'All future models', included: true },
-      { text: 'Priority support forever', included: true },
-      { text: 'Early beta access', included: true },
-      { text: 'Exclusive features', included: true },
-    ],
-    popular: false,
-  },
-];
-
 export default function SubscriptionScreen({ navigation }) {
   const { theme } = useTheme();
+  const { markSubscriptionSeen, hasSeenSubscription } = useAuth();
   const insets = useSafeAreaInsets();
-  const [selectedPlan, setSelectedPlan] = useState('free');
+  const [selectedPlan, setSelectedPlan] = useState(0); // 0 = free, 1 = lifetime
+
+  const lifetimePrice = "$9.90";
+
+  const handleContinue = async () => {
+    if (!hasSeenSubscription) {
+      await markSubscriptionSeen();
+    } else {
+      navigation.goBack();
+    }
+  };
+
+  const isFreeTrial = selectedPlan === 0;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={theme.text} />
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Subscription</Text>
-        <View style={styles.placeholder} />
-      </View>
-
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Title */}
         <Animated.View entering={FadeIn.duration(600)} style={styles.titleSection}>
-          <LinearGradient
-            colors={[theme.gradientStart, theme.gradientEnd]}
-            style={styles.iconBg}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Ionicons name="diamond" size={32} color="#fff" />
-          </LinearGradient>
+          <GeminiLogo size={50} />
+          <View style={{ height: 20 }} />
           <Text style={[styles.title, { color: theme.text }]}>
-            Upgrade Your Experience
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Unlock premium features and access to all AI models
+            Unlock OfflineGPT <Text style={{ color: COLORS.brand[500] }}>Pro</Text>
           </Text>
         </Animated.View>
 
-        {/* Plans */}
-        {PLANS.map((plan, index) => (
-          <Animated.View
-            key={plan.id}
-            entering={FadeInDown.delay(200 + index * 100).duration(400)}
-          >
-            <TouchableOpacity
-              style={[
-                styles.planCard,
-                { backgroundColor: theme.cardBackground },
-                selectedPlan === plan.id && {
-                  borderColor: theme.primary,
-                  borderWidth: 2,
-                },
-              ]}
-              onPress={() => setSelectedPlan(plan.id)}
+        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+          <Text style={styles.sectionLabel}>SELECT A PLAN</Text>
+          
+          <View style={styles.planCardsContainer}>
+            {/* 7 Days Free */}
+            <TouchableOpacity 
               activeOpacity={0.8}
+              onPress={() => setSelectedPlan(0)}
+              style={[
+                styles.planCard, 
+                { backgroundColor: theme.surface, borderColor: selectedPlan === 0 ? COLORS.brand[500] : theme.border }
+              ]}
             >
-              {plan.popular && (
-                <View style={[styles.popularBadge, { backgroundColor: theme.primary }]}>
-                  <Text style={styles.popularText}>Most Popular</Text>
-                </View>
-              )}
-
-              <View style={styles.planHeader}>
-                <View>
-                  <Text style={[styles.planName, { color: theme.text }]}>
-                    {plan.name}
-                  </Text>
-                  <Text style={[styles.planDesc, { color: theme.textSecondary }]}>
-                    {plan.description}
-                  </Text>
-                </View>
-                <View style={styles.priceContainer}>
-                  <Text style={[styles.planPrice, { color: theme.text }]}>
-                    {plan.price}
-                  </Text>
-                  <Text style={[styles.planPeriod, { color: theme.textMuted }]}>
-                    {plan.period}
-                  </Text>
-                </View>
+              <View style={styles.planCardTop}>
+                <Text style={[styles.planCardTitle, { color: selectedPlan === 0 ? theme.text : theme.textSecondary }]} numberOfLines={2}>
+                  7 Days Free
+                </Text>
+                {selectedPlan === 0 && <Ionicons name="checkmark" color={COLORS.brand[500]} size={20} />}
               </View>
-
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
-              <View style={styles.features}>
-                {plan.features.map((feature, idx) => (
-                  <View key={idx} style={styles.featureItem}>
-                    <Ionicons
-                      name={feature.included ? 'checkmark-circle' : 'close-circle'}
-                      size={18}
-                      color={feature.included ? theme.success : theme.textMuted}
-                    />
-                    <Text
-                      style={[
-                        styles.featureText,
-                        {
-                          color: feature.included
-                            ? theme.text
-                            : theme.textMuted,
-                        },
-                      ]}
-                    >
-                      {feature.text}
-                    </Text>
-                  </View>
-                ))}
+              
+              <View style={styles.planCardPricing}>
+                <Text style={styles.strikethroughPrice}>{lifetimePrice}</Text>
+                <Text style={[styles.freeBadge, { color: COLORS.brand[500] }]}>Free Trial</Text>
               </View>
-
-              <View
-                style={[
-                  styles.radioOuter,
-                  { borderColor: selectedPlan === plan.id ? theme.primary : theme.border },
-                ]}
-              >
-                {selectedPlan === plan.id && (
-                  <View style={[styles.radioInner, { backgroundColor: theme.primary }]} />
-                )}
-              </View>
+              <Text style={[styles.planCardDesc, { color: theme.textMuted }]}>
+                Full access for 7 days, no charge.
+              </Text>
             </TouchableOpacity>
-          </Animated.View>
-        ))}
 
-        {/* Subscribe Button */}
-        <Animated.View entering={FadeInDown.delay(600).duration(400)}>
-          <TouchableOpacity
-            style={[styles.subscribeButton, { backgroundColor: theme.primary }]}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.subscribeText}>
-              {selectedPlan === 'free' ? 'Continue with Free' : 'Subscribe Now'}
-            </Text>
-          </TouchableOpacity>
-          <Text style={[styles.disclaimer, { color: theme.textMuted }]}>
-            Cancel anytime. Prices may vary by region.
+            <View style={{ width: 12 }} />
+
+            {/* Lifetime Access */}
+            <TouchableOpacity 
+              activeOpacity={0.8}
+              onPress={() => setSelectedPlan(1)}
+              style={[
+                styles.planCard, 
+                { backgroundColor: theme.surface, borderColor: selectedPlan === 1 ? COLORS.brand[500] : theme.border }
+              ]}
+            >
+              <View style={styles.planCardTop}>
+                <Text style={[styles.planCardTitle, { color: selectedPlan === 1 ? theme.text : theme.textSecondary }]}>
+                  Lifetime Access
+                </Text>
+                {selectedPlan === 1 && <Ionicons name="checkmark" color={COLORS.brand[500]} size={20} />}
+              </View>
+
+              <View style={styles.planCardPricing}>
+                <Text style={[styles.planCardPrice, { color: theme.text }]}>{lifetimePrice}</Text>
+              </View>
+              <Text style={[styles.planCardDesc, { color: theme.textMuted }]}>
+                One-time payment, use forever.
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={[styles.planNote, { color: theme.text }]}>
+            One-time payment available for lifetime access.
           </Text>
         </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+          <View style={[styles.featureBox, { backgroundColor: theme.cardBackground }]}>
+            <View style={styles.featureRow}>
+              <Ionicons name="checkmark" color={theme.text} size={20} />
+              <Text style={[styles.featureText, { color: theme.text }]}>Unlimited chat</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Ionicons name="checkmark" color={theme.text} size={20} />
+              <Text style={[styles.featureText, { color: theme.text }]}>Private by default</Text>
+            </View>
+            <View style={styles.featureRow}>
+              <Ionicons name="checkmark" color={theme.text} size={20} />
+              <Text style={[styles.featureText, { color: theme.text }]}>No cloud dependency</Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.pricingTimeline}>
+          <View style={styles.timelineDots}>
+            <View style={[styles.dot, { backgroundColor: theme.text }]} />
+            <View style={[styles.timelineLine, { backgroundColor: theme.textMuted }]} />
+            <View style={[styles.dot, { backgroundColor: isFreeTrial ? theme.text : theme.textMuted }]} />
+          </View>
+          
+          <View style={styles.timelineContent}>
+            <View style={styles.timelineRow}>
+              <Text style={[styles.timelineLabel, { color: theme.textSecondary }]}>Due Today</Text>
+              <View style={styles.timelineValueRow}>
+                {isFreeTrial && (
+                  <View style={[styles.badgeContainer, { backgroundColor: theme.text }]}>
+                    <Text style={[styles.badgeText, { color: theme.background }]}>7 days Free</Text>
+                  </View>
+                )}
+                <Text style={[styles.timelineValue, { color: COLORS.brand[500] }]}>$0.00</Text>
+              </View>
+            </View>
+            
+            <View style={{ height: 26 }} />
+            
+            <View style={styles.timelineRow}>
+              <Text style={[styles.timelineLabel, { color: theme.textSecondary }]}>
+                {isFreeTrial ? 'Due After Trial' : 'One-time Payment'}
+              </Text>
+              <Text style={[styles.timelineValue, { color: theme.text }]}>
+                {isFreeTrial ? `${lifetimePrice} lifetime` : lifetimePrice}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+          <Text style={[styles.disclaimer, { color: theme.textMuted }]}>
+            {isFreeTrial 
+              ? 'Cancel anytime during your 7 day free trial to not be charged.'
+              : 'Enjoy OfflineGPT forever. Price may vary by region.'}
+          </Text>
+        </Animated.View>
+        
+        <View style={{ height: 20 }} />
       </ScrollView>
+
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 20, backgroundColor: theme.background }]}>
+        <TouchableOpacity
+          style={[styles.primaryButton, { backgroundColor: theme.text }]}
+          activeOpacity={0.8}
+          onPress={handleContinue}
+        >
+          <Text style={[styles.primaryButtonText, { color: theme.background }]}>
+            {isFreeTrial ? 'Try For Free' : 'Get Lifetime Access'}
+          </Text>
+        </TouchableOpacity>
+        
+        <View style={styles.legalRow}>
+          <Text style={[styles.legalText, { color: theme.textMuted }]}>Privacy Policy</Text>
+          <Text style={[styles.separator, { color: theme.textMuted }]}>|</Text>
+          <Text style={[styles.legalText, { color: theme.textMuted }]}>Terms of Service</Text>
+          <Text style={[styles.separator, { color: theme.textMuted }]}>|</Text>
+          <Text style={[styles.legalText, { color: theme.textMuted }]}>Restore</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -215,143 +200,173 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  placeholder: {
-    width: 40,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
   },
   titleSection: {
     alignItems: 'center',
-    marginBottom: 24,
-  },
-  iconBg: {
-    width: 70,
-    height: 70,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 26,
   },
   title: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontSize: 32,
+    fontWeight: '600',
     textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 15,
-    textAlign: 'center',
-    marginTop: 8,
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#9CA3AF',
+    letterSpacing: 1.2,
+    marginBottom: 12,
+  },
+  planCardsContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
   },
   planCard: {
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 16,
-    position: 'relative',
-    overflow: 'hidden',
+    flex: 1,
+    borderRadius: 12,
+    padding: 18,
+    borderWidth: 1.3,
   },
-  popularBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  popularText: {
-    color: '#fff',
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  planHeader: {
+  planCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 10,
   },
-  planName: {
-    fontSize: 20,
-    fontWeight: '700',
+  planCardTitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
   },
-  planDesc: {
-    fontSize: 13,
-    marginTop: 4,
-    maxWidth: width * 0.5,
-  },
-  priceContainer: {
-    alignItems: 'flex-end',
-  },
-  planPrice: {
-    fontSize: 28,
-    fontWeight: '800',
-  },
-  planPeriod: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  divider: {
-    height: 1,
-    marginBottom: 16,
-  },
-  features: {
-    gap: 10,
-  },
-  featureItem: {
+  planCardPricing: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  strikethroughPrice: {
+    color: '#9CA3AF',
+    fontSize: 18,
+    fontWeight: '500',
+    textDecorationLine: 'line-through',
+  },
+  freeBadge: {
+    fontSize: 18,
+    fontWeight: '500',
+  },
+  planCardPrice: {
+    fontSize: 18,
+    fontWeight: '500',
+  },
+  planCardDesc: {
+    fontSize: 11,
+    fontWeight: '400',
+  },
+  planNote: {
+    fontSize: 13,
+    fontWeight: '400',
+    marginBottom: 20,
+  },
+  featureBox: {
+    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+    marginBottom: 36,
+    gap: 14,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
   },
   featureText: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '500',
   },
-  radioOuter: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 2,
+  pricingTimeline: {
+    flexDirection: 'row',
+    marginBottom: 37,
+  },
+  timelineDots: {
     alignItems: 'center',
-    justifyContent: 'center',
+    marginRight: 14,
   },
-  radioInner: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-  subscribeButton: {
-    paddingVertical: 18,
-    borderRadius: 16,
+  timelineLine: {
+    width: 1,
+    height: 52,
+    marginVertical: 4,
+  },
+  timelineContent: {
+    flex: 1,
+  },
+  timelineRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
   },
-  subscribeText: {
-    color: '#fff',
-    fontSize: 17,
+  timelineLabel: {
+    fontSize: 16,
+  },
+  timelineValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  badgeContainer: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  badgeText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  timelineValue: {
+    fontSize: 16,
     fontWeight: '700',
   },
   disclaimer: {
-    fontSize: 12,
+    fontSize: 13,
     textAlign: 'center',
-    marginTop: 12,
+  },
+  bottomBar: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+  },
+  primaryButton: {
+    width: '100%',
+    height: 52,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  primaryButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  legalRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  legalText: {
+    fontSize: 13,
+  },
+  separator: {
+    fontSize: 13,
   },
 });

@@ -268,35 +268,7 @@ export default function SettingsScreen({ navigation }) {
           </View>
         </Animated.View>
 
-        {/* Chat Preferences Section */}
-        <Animated.View entering={FadeInDown.delay(150).duration(400)}>
-          <Text style={[styles.sectionTitle, { color: colors.textTertiary }]}>
-            CHAT PREFERENCES
-          </Text>
-          <View style={[styles.card, { backgroundColor: colors.surface }]}>
-            <SettingItem
-              icon="zap"
-              iconColor={COLORS.warning}
-              title="Stream Responses"
-              subtitle="See AI responses as they're generated"
-              showChevron={false}
-              rightComponent={
-                <Toggle value={streamResponse} onValueChange={setStreamResponse} />
-              }
-            />
-            <Divider />
-            <SettingItem
-              icon="smartphone"
-              iconColor={COLORS.brand[500]}
-              title="Haptic Feedback"
-              subtitle="Vibration on interactions"
-              showChevron={false}
-              rightComponent={
-                <Toggle value={hapticFeedback} onValueChange={setHapticFeedback} />
-              }
-            />
-          </View>
-        </Animated.View>
+
 
         {/* Data & Storage Section */}
         <Animated.View entering={FadeInDown.delay(200).duration(400)}>
@@ -402,16 +374,6 @@ export default function SettingsScreen({ navigation }) {
               title="About OfflineGPT"
               subtitle={`Version ${APP_INFO.VERSION}`}
               onPress={() => navigation.navigate('About')}
-            />
-            <Divider />
-            <SettingItem
-              icon="star"
-              iconColor={COLORS.warning}
-              title="Replay Onboarding"
-              subtitle="See the intro screens again"
-              onPress={() => {
-                // TODO: Reset onboarding
-              }}
             />
           </View>
         </Animated.View>

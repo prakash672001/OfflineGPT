@@ -14,6 +14,8 @@ import {
   Platform,
   TouchableOpacity,
   Keyboard,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInUp, SlideInRight } from 'react-native-reanimated';
@@ -37,15 +39,31 @@ export default function ChatScreen({ navigation }) {
     stopGeneration,
     createNewConversation,
   } = useChat();
-  const { selectedModel, downloadedModels } = useModel();
+  const { 
+    selectedModel, 
+    downloadedModels, 
+    selectModel, 
+    availableModels, 
+    customModels = [] 
+  } = useModel();
 
   const [inputText, setInputText] = useState('');
   const [isIncognito, setIsIncognito] = useState(false);
-  const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [isModelDropdownVisible, setModelDropdownVisible] = useState(false);
   const flatListRef = useRef(null);
 
   const tools = getLandingPageTools();
   const isEmpty = !currentConversation || messages.length === 0;
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -96,14 +114,7 @@ export default function ChatScreen({ navigation }) {
           isUser ? styles.userMessageRow : styles.aiMessageRow,
         ]}
       >
-        {/* AI Avatar */}
-        {!isUser && (
-          <View style={styles.aiAvatarContainer}>
-            <GeminiLogo size={28} animating={isStreaming} />
-          </View>
-        )}
-
-        {/* Message Bubble */}
+        {/* Message Bubble without Avatars */}
         <View
           style={[
             styles.messageBubble,
@@ -132,13 +143,6 @@ export default function ChatScreen({ navigation }) {
             </View>
           ) : null}
         </View>
-
-        {/* User Avatar */}
-        {isUser && (
-          <View style={[styles.avatar, { backgroundColor: COLORS.brand[400] }]}>
-            <Icon name="user" size={14} color="#fff" />
-          </View>
-        )}
       </Animated.View>
     );
   };
@@ -146,15 +150,17 @@ export default function ChatScreen({ navigation }) {
   // Render empty state with tools and suggestions
   const renderEmptyState = () => (
     <Animated.View entering={FadeIn.duration(500)} style={styles.emptyContainer}>
-      {/* Logo */}
-      <View style={styles.logoContainer}>
-        <GeminiLogo size={80} />
-      </View>
-
       {/* Welcome Text */}
       <Text style={[styles.welcomeTitle, { color: colors.text }]}>
         Welcome to OfflineGPT
       </Text>
+
+      {/* Logo */}
+      {!isKeyboardVisible && (
+        <View style={styles.logoContainer}>
+          <GeminiLogo size={80} />
+        </View>
+      )}
 
       {/* Offline Indicator */}
       <View style={[styles.offlineIndicator, { backgroundColor: colors.surfaceSecondary }]}>
@@ -235,7 +241,7 @@ export default function ChatScreen({ navigation }) {
           <Icon name="menu" size={24} color={colors.icon} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.modelSelector}>
+        <View style={styles.modelSelector}>
           <View style={styles.modelInfo}>
             {isIncognito && (
               <Icon name="eye-off" size={14} color={COLORS.brand[500]} style={{ marginRight: 6 }} />
@@ -243,9 +249,8 @@ export default function ChatScreen({ navigation }) {
             <Text style={[styles.modelName, { color: colors.text }]} numberOfLines={1}>
               {selectedModel?.name || 'Select Model'}
             </Text>
-            <Icon name="chevron-down" size={14} color={colors.textTertiary} />
           </View>
-        </TouchableOpacity>
+        </View>
 
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={handleIncognitoChat} style={styles.headerButton}>
@@ -289,29 +294,12 @@ export default function ChatScreen({ navigation }) {
           ]}
         >
           <View style={[styles.inputWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            {/* Attachment Button */}
-            <TouchableOpacity
-              onPress={() => setShowAttachMenu(!showAttachMenu)}
-              style={[
-                styles.attachButton,
-                { borderColor: colors.border },
-                showAttachMenu && { backgroundColor: colors.surfaceSecondary, borderColor: 'transparent' }
-              ]}
-            >
-              <Icon
-                name="plus"
-                size={22}
-                color={showAttachMenu ? colors.text : colors.icon}
-                style={showAttachMenu && { transform: [{ rotate: '45deg' }] }}
-              />
-            </TouchableOpacity>
-
             {/* Text Input */}
             <View style={styles.textInputWrapper}>
               <TextInput
                 value={inputText}
                 onChangeText={setInputText}
-                placeholder={`Message ${selectedModel?.name || 'AI'}...`}
+                placeholder="Type your message here"
                 placeholderTextColor={colors.textTertiary}
                 style={[styles.textInput, { color: colors.text }]}
                 multiline
@@ -335,11 +323,7 @@ export default function ChatScreen({ navigation }) {
               >
                 <Icon name="send" size={16} color="#ffffff" />
               </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={styles.micButton}>
-                <Icon name="mic" size={22} color={colors.icon} />
-              </TouchableOpacity>
-            )}
+            ) : null}
           </View>
 
           <Text style={[styles.disclaimer, { color: colors.textTertiary }]}>
@@ -347,6 +331,8 @@ export default function ChatScreen({ navigation }) {
           </Text>
         </Animated.View>
       </KeyboardAvoidingView>
+
+
     </View>
   );
 }
@@ -403,33 +389,23 @@ const styles = StyleSheet.create({
   aiMessageRow: {
     justifyContent: 'flex-start',
   },
-  avatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  aiAvatarContainer: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   messageBubble: {
-    maxWidth: '75%',
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.xl,
-    marginHorizontal: SPACING.sm,
+    marginHorizontal: SPACING.xs,
   },
   userBubble: {
+    maxWidth: '80%',
     borderBottomRightRadius: SPACING.xs,
+    alignSelf: 'flex-end',
   },
   aiBubble: {
+    width: '100%',
     borderBottomLeftRadius: SPACING.xs,
     backgroundColor: 'transparent',
-    paddingLeft: 0,
+    paddingLeft: SPACING.sm,
+    paddingRight: SPACING.sm,
   },
   messageText: {
     fontSize: FONT_SIZES.md,
@@ -458,18 +434,19 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: SPACING.xxxl,
     paddingHorizontal: SPACING.lg,
   },
   logoContainer: {
-    marginBottom: SPACING.xxl,
+    marginBottom: SPACING.xl,
     alignItems: 'center',
     justifyContent: 'center',
   },
   welcomeTitle: {
     fontSize: FONT_SIZES.xxxl,
     fontWeight: '700',
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
   offlineIndicator: {
     flexDirection: 'row',

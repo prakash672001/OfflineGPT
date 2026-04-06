@@ -24,30 +24,25 @@ import { COLORS, SPACING, BORDER_RADIUS, FONT_SIZES } from '../config/theme';
 
 export default function LoginScreen() {
   const { theme, isDark, toggleTheme } = useTheme();
-  const { signInWithGoogle } = useAuth();
+  const { signInWithCredentials } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
 
   const colors = isDark ? COLORS.dark : COLORS.light;
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    try {
-      await signInWithGoogle();
-    } catch (error) {
-      console.log('Sign in error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleSubmit = async () => {
-    if (email && password) {
+    if (email && password && (isLogin || name)) {
       setIsLoading(true);
       try {
-        await signInWithGoogle(); // Mock auth - use same flow
+        await signInWithCredentials({ 
+          email, 
+          password, 
+          name, 
+          isNewUser: !isLogin 
+        });
       } catch (error) {
         console.log('Sign in error:', error);
       } finally {
@@ -55,6 +50,7 @@ export default function LoginScreen() {
       }
     }
   };
+
 
   return (
     <KeyboardAvoidingView
@@ -98,6 +94,20 @@ export default function LoginScreen() {
           entering={FadeInUp.delay(500).duration(800)}
           style={styles.formContainer}
         >
+          {!isLogin && (
+            <TextInput
+              style={[styles.input, {
+                backgroundColor: colors.surface,
+                color: colors.text,
+              }]}
+              placeholder="Full Name"
+              placeholderTextColor={colors.textSecondary}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+            />
+          )}
+
           <TextInput
             style={[styles.input, {
               backgroundColor: colors.surface,
@@ -143,30 +153,6 @@ export default function LoginScreen() {
                 </Text>
               )}
             </LinearGradient>
-          </TouchableOpacity>
-
-          {/* Divider */}
-          <View style={styles.divider}>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.dividerText, { color: colors.textSecondary, backgroundColor: colors.background }]}>
-              Or continue with
-            </Text>
-            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-          </View>
-
-          {/* Google Sign In */}
-          <TouchableOpacity
-            style={[styles.googleButton, { backgroundColor: colors.surface }]}
-            onPress={handleGoogleSignIn}
-            disabled={isLoading}
-            activeOpacity={0.8}
-          >
-            <View style={styles.googleIconContainer}>
-              <Text style={styles.googleIcon}>G</Text>
-            </View>
-            <Text style={[styles.googleButtonText, { color: colors.text }]}>
-              Continue with Google
-            </Text>
           </TouchableOpacity>
 
           {/* Toggle Login/Signup */}
@@ -267,45 +253,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
   },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-  },
-  dividerText: {
-    paddingHorizontal: 12,
-    fontSize: FONT_SIZES.sm,
-  },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: BORDER_RADIUS.xxxl,
-  },
-  googleIconContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  googleIcon: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.logoGradient.start,
-  },
-  googleButtonText: {
-    fontSize: FONT_SIZES.lg,
-    fontWeight: '500',
-  },
+
   toggleAuth: {
     alignItems: 'center',
     marginTop: 24,
