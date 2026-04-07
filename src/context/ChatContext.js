@@ -190,10 +190,10 @@ export function ChatProvider({ children }) {
 
       const context = await initLlama({
         model: modelPath,
-        n_ctx: 2048,
-        n_batch: 512,
+        n_ctx: 1024,
+        n_batch: 256,
         n_threads: 4,
-        use_mlock: true,
+        use_mlock: false,
         use_mmap: true,
       });
 
@@ -345,7 +345,7 @@ export function ChatProvider({ children }) {
   };
 
   const buildPrompt = (previousMessages, currentMessage) => {
-    let prompt = '<|system|>\nYou are OfflineGPT, a helpful AI assistant that runs locally on the user\'s device. You are friendly, knowledgeable, and always try to provide accurate and helpful responses. Keep responses concise but informative.\n</s>\n';
+    let prompt = '<|system|>\nYou are OfflineGPT, a helpful conversational chat assistant that runs locally on the user\'s device. Be precise, concise, and casual. Give direct answers, avoid filler, and ask a brief clarifying question only when needed.\n</s>\n';
 
     const recentMessages = previousMessages.slice(-10);
     for (const msg of recentMessages) {
