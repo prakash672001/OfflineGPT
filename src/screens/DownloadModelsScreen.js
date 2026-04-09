@@ -38,14 +38,7 @@ export default function DownloadModelsScreen({ navigation }) {
   };
 
   const handleStopDownload = () => {
-    Alert.alert(
-      'Stop Download',
-      'Are you sure you want to cancel this download?',
-      [
-        { text: 'Continue', style: 'cancel' },
-        { text: 'Stop', style: 'destructive', onPress: () => stopDownload() },
-      ]
-    );
+    stopDownload();
   };
 
   const handleDeleteModel = (model) => {
@@ -98,12 +91,20 @@ export default function DownloadModelsScreen({ navigation }) {
 
                       <View style={styles.titleCol}>
                         <View style={styles.titleRow}>
-                          <Text style={[styles.modelName, { color: theme.text }]} numberOfLines={1}>
+                          <Text style={[styles.modelName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
                             {model.name}
                           </Text>
-                          <View style={[styles.sizeBadge, { backgroundColor: theme.cardBackground }]}>
-                            <Text style={[styles.sizeText, { color: theme.textSecondary }]}>{model.size}</Text>
-                          </View>
+                          {isDownloading && currentDownloadId === model.id ? null : (
+                            downloaded ? (
+                              <TouchableOpacity style={styles.iconButton} onPress={() => handleDeleteModel(model)}>
+                                <Icon name="trash-2" size={18} color={theme.error} />
+                              </TouchableOpacity>
+                            ) : (
+                              <TouchableOpacity style={styles.iconButton} onPress={() => startDownload(model)}>
+                                <Icon name="download" size={18} color={theme.secondary} />
+                              </TouchableOpacity>
+                            )
+                          )}
                         </View>
 
                         <View style={styles.statusRow}>
@@ -113,6 +114,10 @@ export default function DownloadModelsScreen({ navigation }) {
                               <Text style={[styles.statusChipText, { color: theme.textSecondary }]}>{model.ramRequired} RAM</Text>
                             </View>
                           )}
+                          <View style={[styles.statusChip, { backgroundColor: theme.cardBackground, marginRight: 6 }]}>
+                            <Icon name="database" size={10} color={theme.textSecondary} />
+                            <Text style={[styles.statusChipText, { color: theme.textSecondary }]}>{model.size}</Text>
+                          </View>
                           {downloaded && (
                             <View style={[styles.statusChip, { backgroundColor: theme.success + '20' }]}>
                               <Icon name="check" size={10} color={theme.success} />
@@ -123,40 +128,21 @@ export default function DownloadModelsScreen({ navigation }) {
                       </View>
                     </View>
 
-                    {/* Action Row */}
-                    <View style={styles.actionRow}>
-                      <View style={{ flex: 1 }}>
-                        {isDownloading && currentDownloadId === model.id && (
-                          <View style={{ width: '80%' }}>
-                            <Text style={{ fontSize: 11, color: theme.primary, marginBottom: 4 }}>
-                              Downloading... {downloadProgress[model.id] || 0}%
-                            </Text>
-                            <View style={{ height: 4, backgroundColor: theme.border, borderRadius: 2 }}>
-                              <View style={{ height: 4, backgroundColor: theme.primary, borderRadius: 2, width: `${downloadProgress[model.id] || 0}%` }} />
-                            </View>
+                    {isDownloading && currentDownloadId === model.id && (
+                      <View style={styles.progressContainer}>
+                        <View style={{ flex: 1, paddingRight: 12 }}>
+                          <Text style={{ fontSize: 11, color: theme.primary, marginBottom: 4 }}>
+                            Downloading... {downloadProgress[model.id] || 0}%
+                          </Text>
+                          <View style={{ height: 4, backgroundColor: theme.border, borderRadius: 2 }}>
+                            <View style={{ height: 4, backgroundColor: theme.primary, borderRadius: 2, width: `${downloadProgress[model.id] || 0}%` }} />
                           </View>
-                        )}
+                        </View>
+                        <TouchableOpacity style={styles.cancelIconBtn} onPress={handleStopDownload}>
+                          <Icon name="x-circle" size={20} color={theme.error} />
+                        </TouchableOpacity>
                       </View>
-
-                      <View style={styles.actionButtons}>
-                        {isDownloading && currentDownloadId === model.id ? (
-                          <TouchableOpacity style={[styles.stopBtn, { backgroundColor: theme.error + '15' }]} onPress={handleStopDownload}>
-                            <Icon name="x" size={16} color={theme.error} />
-                            <Text style={[styles.actionBtnText, { color: theme.error }]}>Cancel</Text>
-                          </TouchableOpacity>
-                        ) : downloaded ? (
-                          <TouchableOpacity style={[styles.deleteBtn, { backgroundColor: theme.error + '15' }]} onPress={() => handleDeleteModel(model)}>
-                            <Icon name="trash-2" size={16} color={theme.error} />
-                            <Text style={[styles.actionBtnText, { color: theme.error }]}>Delete</Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <TouchableOpacity style={[styles.downloadBtn, { backgroundColor: theme.secondary }]} onPress={() => startDownload(model)}>
-                            <Icon name="download" size={16} color="#fff" />
-                            <Text style={[styles.actionBtnText, { color: '#fff' }]}>Download</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
-                    </View>
+                    )}
                   </View>
                 </View>
               </Animated.View>
@@ -202,10 +188,17 @@ const styles = StyleSheet.create({
   statusRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, minHeight: 18 },
   statusChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 12, gap: 4 },
   statusChipText: { fontSize: 10, fontWeight: '600' },
-  actionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, paddingLeft: 48 },
-  actionButtons: { flexDirection: 'row', alignItems: 'center' },
-  downloadBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, gap: 6 },
-  deleteBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, gap: 6 },
-  stopBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, gap: 6 },
-  actionBtnText: { fontSize: 13, fontWeight: '600' },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: 48,
+    marginTop: 12,
+  },
+  cancelIconBtn: {
+    padding: 4,
+  },
+  iconButton: {
+    padding: 4,
+  },
 });

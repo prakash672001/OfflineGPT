@@ -59,14 +59,7 @@ export default function ModelSelectScreen({ navigation }) {
   };
 
   const handleStopDownload = () => {
-    Alert.alert(
-      'Stop Download',
-      'Are you sure you want to cancel this download?',
-      [
-        { text: 'Continue', style: 'cancel' },
-        { text: 'Stop', style: 'destructive', onPress: () => stopDownload() },
-      ]
-    );
+    stopDownload();
   };
 
   const handleDeleteModel = (model) => {
@@ -82,7 +75,9 @@ export default function ModelSelectScreen({ navigation }) {
 
   const liteModels = availableModels.filter(m => m.category === 'Lite');
   const proModels = availableModels.filter(m => m.category === 'Pro');
+  const proMaxModels = availableModels.filter(m => m.category === 'Pro Max');
   const thinkingModels = availableModels.filter(m => m.category === 'Thinking');
+  const ultraThinkingModels = availableModels.filter(m => m.category === 'Ultra Thinking');
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -140,6 +135,26 @@ export default function ModelSelectScreen({ navigation }) {
         </Animated.View>
 
         <Animated.View entering={FadeInUp.delay(300).duration(500)}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: 10 }]}>Pro Max Models</Text>
+          {proMaxModels.map((model, index) => (
+            <ModelCard
+              key={model.id}
+              model={model}
+              index={index}
+              theme={theme}
+              isDownloaded={isModelDownloaded(model.id)}
+              isSelected={selectedModel?.id === model.id}
+              isDownloading={isDownloading && currentDownloadId === model.id}
+              progress={downloadProgress[model.id] || 0}
+              onSelect={() => handleSelectModel(model)}
+              onDownload={() => startDownload(model)}
+              onDelete={isModelDownloaded(model.id) ? () => handleDeleteModel(model) : null}
+              onStopDownload={handleStopDownload}
+            />
+          ))}
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(400).duration(500)}>
           <Text style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: 10 }]}>Thinking Models</Text>
           {thinkingModels.map((model, index) => (
             <ModelCard
@@ -147,7 +162,26 @@ export default function ModelSelectScreen({ navigation }) {
               model={model}
               index={index}
               theme={theme}
-              capabilities={['Thinking', 'Reasoning']}
+              isDownloaded={isModelDownloaded(model.id)}
+              isSelected={selectedModel?.id === model.id}
+              isDownloading={isDownloading && currentDownloadId === model.id}
+              progress={downloadProgress[model.id] || 0}
+              onSelect={() => handleSelectModel(model)}
+              onDownload={() => startDownload(model)}
+              onDelete={isModelDownloaded(model.id) ? () => handleDeleteModel(model) : null}
+              onStopDownload={handleStopDownload}
+            />
+          ))}
+        </Animated.View>
+
+        <Animated.View entering={FadeInUp.delay(500).duration(500)}>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: 10 }]}>Ultra Thinking Models</Text>
+          {ultraThinkingModels.map((model, index) => (
+            <ModelCard
+              key={model.id}
+              model={model}
+              index={index}
+              theme={theme}
               isDownloaded={isModelDownloaded(model.id)}
               isSelected={selectedModel?.id === model.id}
               isDownloading={isDownloading && currentDownloadId === model.id}
@@ -161,7 +195,7 @@ export default function ModelSelectScreen({ navigation }) {
         </Animated.View>
 
         {customModels.length > 0 && (
-          <Animated.View entering={FadeInUp.delay(400).duration(500)}>
+          <Animated.View entering={FadeInUp.delay(600).duration(500)}>
             <Text style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: 10 }]}>Custom Models</Text>
             {customModels.map((model, index) => (
               <ModelCard
@@ -183,7 +217,7 @@ export default function ModelSelectScreen({ navigation }) {
         )}
 
         {/* Download More Button */}
-        <Animated.View entering={FadeInUp.delay(500).duration(500)}>
+        <Animated.View entering={FadeInUp.delay(700).duration(500)}>
           <TouchableOpacity
             style={[styles.downloadMoreBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
             onPress={() => navigation.navigate('DownloadModels')}
@@ -248,12 +282,20 @@ function ModelCard({
             {/* Title Column */}
             <View style={styles.titleCol}>
               <View style={styles.titleRow}>
-                <Text style={[styles.modelName, { color: theme.text }]} numberOfLines={1}>
+                <Text style={[styles.modelName, { color: theme.text, flex: 1 }]} numberOfLines={1}>
                   {model.name}
                 </Text>
-                <View style={[styles.sizeBadge, { backgroundColor: theme.cardBackground }]}>
-                  <Text style={[styles.sizeText, { color: theme.textSecondary }]}>{formatBytes(model.size)}</Text>
-                </View>
+                {!isDownloading && (
+                  isDownloaded ? (
+                    <TouchableOpacity style={styles.iconButton} onPress={onDelete}>
+                      <Icon name="trash-2" size={18} color={theme.error} />
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity style={styles.iconButton} onPress={onDownload}>
+                      <Icon name="download" size={18} color={theme.primary} />
+                    </TouchableOpacity>
+                  )
+                )}
               </View>
 
               <View style={styles.statusRow}>
@@ -263,6 +305,10 @@ function ModelCard({
                     <Text style={[styles.statusChipText, { color: theme.textSecondary }]}>{model.ramRequired} RAM</Text>
                   </View>
                 )}
+                <View style={[styles.statusChip, { backgroundColor: theme.cardBackground, marginRight: 6 }]}>
+                  <Icon name="database" size={10} color={theme.textSecondary} />
+                  <Text style={[styles.statusChipText, { color: theme.textSecondary }]}>{formatBytes(model.size)}</Text>
+                </View>
                 {isSelected && (
                   <View style={[styles.statusChip, { backgroundColor: theme.success + '20' }]}>
                     <Icon name="check-circle" size={10} color={theme.success} />
@@ -295,41 +341,21 @@ function ModelCard({
             </View>
           )}
 
-          {/* Action Row */}
-          <View style={styles.actionRow}>
-             {/* Left side empty or status -> align right */}
-            <View style={{ flex: 1 }}>
-              {isDownloading && (
-                <View style={{ width: '80%' }}>
-                  <Text style={{ fontSize: 11, color: theme.primary, marginBottom: 4 }}>
-                    Downloading... {progress}%
-                  </Text>
-                  <View style={{ height: 4, backgroundColor: theme.border, borderRadius: 2 }}>
-                    <View style={{ height: 4, backgroundColor: theme.primary, borderRadius: 2, width: `${progress}%` }} />
-                  </View>
+          {isDownloading && (
+            <View style={styles.progressContainer}>
+              <View style={{ flex: 1, paddingRight: 12 }}>
+                <Text style={{ fontSize: 11, color: theme.primary, marginBottom: 4 }}>
+                  Downloading... {progress}%
+                </Text>
+                <View style={{ height: 4, backgroundColor: theme.border, borderRadius: 2 }}>
+                  <View style={{ height: 4, backgroundColor: theme.primary, borderRadius: 2, width: `${progress}%` }} />
                 </View>
-              )}
+              </View>
+              <TouchableOpacity style={styles.cancelIconBtn} onPress={onStopDownload}>
+                <Icon name="x-circle" size={20} color={theme.error} />
+              </TouchableOpacity>
             </View>
-
-            <View style={styles.actionButtons}>
-              {isDownloading ? (
-                <TouchableOpacity style={[styles.stopBtn, { backgroundColor: theme.error + '15' }]} onPress={onStopDownload}>
-                  <Icon name="x" size={16} color={theme.error} />
-                  <Text style={[styles.actionBtnText, { color: theme.error }]}>Cancel</Text>
-                </TouchableOpacity>
-              ) : isDownloaded ? (
-                <TouchableOpacity style={[styles.deleteBtn, { backgroundColor: theme.error + '15' }]} onPress={onDelete}>
-                  <Icon name="trash-2" size={16} color={theme.error} />
-                  <Text style={[styles.actionBtnText, { color: theme.error }]}>Delete</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity style={[styles.downloadBtn, { backgroundColor: theme.primary }]} onPress={onDownload}>
-                  <Icon name="download" size={16} color="#fff" />
-                  <Text style={[styles.actionBtnText, { color: '#fff' }]}>Download</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
+          )}
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -454,44 +480,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
-  actionRow: {
+  progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 16,
     paddingLeft: 48,
+    marginTop: 12,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  cancelIconBtn: {
+    padding: 4,
   },
-  downloadBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-  },
-  deleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-  },
-  stopBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-  },
-  actionBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
+  iconButton: {
+    padding: 4,
   },
   downloadMoreBtn: {
     flexDirection: 'row',
