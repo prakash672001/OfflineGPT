@@ -20,6 +20,28 @@ export function ChatProvider({ children }) {
   const { selectedModel, getModelPath, setModelLoaded } = useModel();
   const abortController = useRef(null);
   const currentlyLoadedId = useRef(null);
+  const loadedModelId = useRef(selectedModel?.id);
+
+  // Hot-swap models when user changes selection in settings
+  useEffect(() => {
+    if (selectedModel?.id && selectedModel.id !== loadedModelId.current) {
+      const switchModel = async () => {
+        if (llamaContext) {
+          try {
+            if (llamaContext.release) await llamaContext.release();
+          } catch (e) {
+            console.log('Error releasing old model:', e);
+          }
+          setLlamaContext(null);
+          setModelLoaded(false);
+        }
+        loadedModelId.current = selectedModel.id;
+        // Pre-load immediately so the user doesn't wait when sending the first message!
+        await initializeLlama();
+      };
+      switchModel();
+    }
+  }, [selectedModel?.id]);
 
   useEffect(() => {
     loadConversations();
@@ -301,7 +323,7 @@ export function ChatProvider({ children }) {
           n_predict: 512,
           temperature: 0.7,
           top_p: 0.9,
-          stop: ['</s>', '<|end|>', '<|eot_id|>', 'User:', '\nUser:'],
+          stop: ['</s>', '<|end|>', '<|eot_id|>', 'User:', '\nUser:', '<end_of_turn>', '<eos>', '<|im_end|>'],
           signal: abortController.current.signal,
         },
         (token) => {
