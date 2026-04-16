@@ -95,6 +95,16 @@ export default function ChatScreen({ navigation }) {
         </Text>
       );
     },
+    th: (node, children, parent, styles) => (
+      <View key={node.key} style={styles._VIEW_SAFE_th}>
+        <Text selectable={true} style={{ color: colors.text, fontWeight: 'bold' }}>{children}</Text>
+      </View>
+    ),
+    td: (node, children, parent, styles) => (
+      <View key={node.key} style={styles._VIEW_SAFE_td}>
+        <Text selectable={true} style={{ color: colors.text }}>{children}</Text>
+      </View>
+    ),
   };
 
   useEffect(() => {
@@ -166,6 +176,11 @@ export default function ChatScreen({ navigation }) {
                 code_inline: { backgroundColor: colors.border, color: colors.text, borderRadius: 4, padding: 2 },
                 fence: { backgroundColor: colors.border, color: colors.text, borderRadius: 8, padding: 10, marginTop: 5, marginBottom: 5 },
                 code_block: { backgroundColor: colors.border, color: colors.text, borderRadius: 8, padding: 10, marginTop: 5, marginBottom: 5 },
+                table: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, marginVertical: 8, overflow: 'hidden' },
+                thead: { backgroundColor: isDark ? '#2a2a2a' : '#f0f0f0' },
+                th: { borderWidth: 0.5, borderColor: colors.border, padding: 8, flex: 1 },
+                tr: { flexDirection: 'row', borderBottomWidth: 0.5, borderColor: colors.border },
+                td: { borderWidth: 0.5, borderColor: colors.border, padding: 8, flex: 1 },
               }}
             >
               {item.content}
@@ -321,7 +336,7 @@ export default function ChatScreen({ navigation }) {
             renderItem={renderMessage}
             contentContainerStyle={styles.messagesList}
             showsVerticalScrollIndicator={false}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+            // onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           />
         )}
 
