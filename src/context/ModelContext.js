@@ -92,14 +92,6 @@ export const DOWNLOADABLE_MODELS = [
   },
   // 6GB RAM Tier
   {
-    id: 'gemma-2-2b-it-q4_k_m-6gb',
-    name: 'Gemma 2 2B (Q4_K_M)',
-    size: '1.63 GB',
-    ramRequired: '6 GB',
-    downloadUrl: 'https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf',
-    filename: 'gemma-2-2b-it-Q4_K_M.gguf',
-  },
-  {
     id: 'phi-2-2.7b-q4_k_m-6gb',
     name: 'Phi-2 2.7B (Q4_K_M)',
     size: '1.66 GB',
@@ -116,14 +108,6 @@ export const DOWNLOADABLE_MODELS = [
     filename: 'qwen2.5-1.5b-instruct-q4_k_m.gguf',
   },
   // 8GB RAM Tier
-  {
-    id: 'llama-3.2-3b-q4_k_m-8gb',
-    name: 'LLaMA 3.2 3B (Q4_K_M)',
-    size: '1.95 GB',
-    ramRequired: '8 GB',
-    downloadUrl: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf',
-    filename: 'Llama-3.2-3B-Instruct-Q4_K_M.gguf',
-  },
   {
     id: 'phi-2-2.7b-q6_k',
     name: 'Phi-2 2.7B (Q6_K)',
@@ -167,14 +151,6 @@ export const DOWNLOADABLE_MODELS = [
   },
   // 16GB RAM Tier
   {
-    id: 'llama-3.2-3b-q6_k-16gb',
-    name: 'LLaMA 3.2 3B (Q6_K)',
-    size: '2.64 GB',
-    ramRequired: '16 GB',
-    downloadUrl: 'https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q6_K.gguf',
-    filename: 'Llama-3.2-3B-Instruct-Q6_K.gguf',
-  },
-  {
     id: 'llama-3.1-8b-q4_k_m',
     name: 'LLaMA 3.1 8B (Q4_K_M)',
     size: '4.90 GB',
@@ -189,39 +165,6 @@ export const DOWNLOADABLE_MODELS = [
     ramRequired: '16 GB',
     downloadUrl: 'https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/main/Qwen2.5-7B-Instruct-Q4_K_M.gguf',
     filename: 'Qwen2.5-7B-Instruct-Q4_K_M.gguf',
-  },
-  // Experimental Models
-  {
-    id: 'gemma-3n-e2b-q4_k_m',
-    name: 'Gemma 3n E2B (Q4_K_M)',
-    size: '2.80 GB',
-    ramRequired: '16 GB',
-    downloadUrl: 'https://huggingface.co/unsloth/gemma-3n-E2B-it-GGUF/resolve/main/gemma-3n-E2B-it-Q4_K_M.gguf',
-    filename: 'gemma-3n-E2B-it-Q4_K_M.gguf',
-  },
-  {
-    id: 'gemma-3n-e4b-q4_k_m',
-    name: 'Gemma 3n E4B (Q4_K_M)',
-    size: '4.23 GB',
-    ramRequired: '16 GB',
-    downloadUrl: 'https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF/resolve/main/gemma-3n-E4B-it-Q4_K_M.gguf',
-    filename: 'gemma-3n-E4B-it-Q4_K_M.gguf',
-  },
-    {
-    id: 'gemma-4-e2b-q4_k_m',
-    name: 'Gemma 4 E2B (Q4_K_M)',
-    size: '2.90 GB',
-    ramRequired: '16 GB',
-    downloadUrl: 'https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf',
-    filename: 'gemma-4-E2B-it-Q4_K_M.gguf',
-  },
-  {
-    id: 'gemma-4-e4b-q4_k_m',
-    name: 'Gemma 4 E4B (Q4_K_M)',
-    size: '4.64 GB',
-    ramRequired: '16 GB',
-    downloadUrl: 'https://huggingface.co/unsloth/gemma-4-E4B-it-GGUF/resolve/main/gemma-4-E4B-it-Q4_K_M.gguf',
-    filename: 'gemma-4-E4B-it-Q4_K_M.gguf',
   }
 ];
 
