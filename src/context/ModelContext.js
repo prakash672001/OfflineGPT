@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 
 const ModelContext = createContext();
 
@@ -190,12 +192,12 @@ export const DOWNLOADABLE_MODELS = [
   },
   // Experimental Models
   {
-    id: 'gemma-3n-e2b-q8_0',
-    name: 'Gemma 3n E2B (Q8_0)',
-    size: '4.46 GB',
+    id: 'gemma-3n-e2b-q4_k_m',
+    name: 'Gemma 3n E2B (Q4_K_M)',
+    size: '2.80 GB',
     ramRequired: '16 GB',
-    downloadUrl: 'https://huggingface.co/ggml-org/gemma-3n-E2B-it-GGUF/resolve/main/gemma-3n-E2B-it-Q8_0.gguf',
-    filename: 'gemma-3n-E2B-it-Q8_0.gguf',
+    downloadUrl: 'https://huggingface.co/unsloth/gemma-3n-E2B-it-GGUF/resolve/main/gemma-3n-E2B-it-Q4_K_M.gguf',
+    filename: 'gemma-3n-E2B-it-Q4_K_M.gguf',
   },
   {
     id: 'gemma-3n-e4b-q4_k_m',
@@ -205,13 +207,13 @@ export const DOWNLOADABLE_MODELS = [
     downloadUrl: 'https://huggingface.co/unsloth/gemma-3n-E4B-it-GGUF/resolve/main/gemma-3n-E4B-it-Q4_K_M.gguf',
     filename: 'gemma-3n-E4B-it-Q4_K_M.gguf',
   },
-  {
-    id: 'gemma-4-e2b-q6_k',
-    name: 'Gemma 4 E2B (Q6_K)',
-    size: '4.19 GB',
+    {
+    id: 'gemma-4-e2b-q4_k_m',
+    name: 'Gemma 4 E2B (Q4_K_M)',
+    size: '2.90 GB',
     ramRequired: '16 GB',
-    downloadUrl: 'https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q6_K.gguf',
-    filename: 'gemma-4-E2B-it-Q6_K.gguf',
+    downloadUrl: 'https://huggingface.co/unsloth/gemma-4-E2B-it-GGUF/resolve/main/gemma-4-E2B-it-Q4_K_M.gguf',
+    filename: 'gemma-4-E2B-it-Q4_K_M.gguf',
   },
   {
     id: 'gemma-4-e4b-q4_k_m',
@@ -232,11 +234,13 @@ export function ModelProvider({ children }) {
   const [currentDownloadId, setCurrentDownloadId] = useState(null);
   const [downloadTask, setDownloadTask] = useState(null);
   const [modelLoaded, setModelLoaded] = useState(false);
+  const lastNotifiedPercent = useRef(-1);
 
   const modelsDir = FileSystem.documentDirectory + 'models/';
 
   useEffect(() => {
     initializeModels();
+    notifee.requestPermission();
   }, []);
 
   const initializeModels = async () => {
@@ -269,11 +273,49 @@ export function ModelProvider({ children }) {
     }
   };
 
+  const createNotificationChannel = async () => {
+    return await notifee.createChannel({
+      id: 'download',
+      name: 'Download Progress',
+      importance: AndroidImportance.LOW,
+    });
+  };
+
+  const updateProgressNotification = async (modelName, percent) => {
+    try {
+      await notifee.displayNotification({
+        id: 'offlinegpt-download',
+        title: `Downloading "${modelName}"`,
+        body: `Downloading in progress: ${percent}%`,
+        android: {
+          channelId: 'download',
+          onlyAlertOnce: true, 
+          ongoing: true, 
+          progress: {
+            max: 100,
+            current: percent,
+          },
+        },
+      });
+    } catch (err) {
+      console.log('Notifee error:', err);
+    }
+  };
+
+  const clearNotification = async () => {
+    await notifee.cancelNotification('offlinegpt-download');
+  };
+
   const downloadModel = async (model) => {
     try {
+      if (Platform.OS === 'android') {
+        await createNotificationChannel();
+      }
+
       setIsDownloading(true);
       setCurrentDownloadId(model.id);
       setDownloadProgress((prev) => ({ ...prev, [model.id]: 0 }));
+      lastNotifiedPercent.current = -1;
 
       const downloadPath = modelsDir + model.filename;
 
@@ -285,10 +327,18 @@ export function ModelProvider({ children }) {
           const progress =
             downloadProgress.totalBytesWritten /
             downloadProgress.totalBytesExpectedToWrite;
+          const percent = Math.round(progress * 100);
+          
           setDownloadProgress((prev) => ({
             ...prev,
-            [model.id]: Math.round(progress * 100),
+            [model.id]: percent,
           }));
+
+          // Notify only when the integer percentage actually changes
+          if (percent > lastNotifiedPercent.current) {
+            lastNotifiedPercent.current = percent;
+            updateProgressNotification(model.name, percent);
+          }
         }
       );
 
@@ -328,6 +378,9 @@ export function ModelProvider({ children }) {
       setCurrentDownloadId(null);
       setDownloadTask(null);
       setDownloadProgress((prev) => ({ ...prev, [model.id]: 100 }));
+      
+      await updateProgressNotification(model.name, 100);
+      setTimeout(() => clearNotification(), 2000);
 
       return uri;
     } catch (error) {
@@ -336,6 +389,7 @@ export function ModelProvider({ children }) {
       setCurrentDownloadId(null);
       setDownloadTask(null);
       setDownloadProgress((prev) => ({ ...prev, [model.id]: 0 }));
+      await clearNotification();
       
       // If the error is due to cancellation, just return normally
       if (error && error.message && error.message.toLowerCase().includes('cancel')) {

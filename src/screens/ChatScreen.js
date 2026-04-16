@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeInUp, SlideInRight } from 'react-native-reanimated';
+import Markdown from 'react-native-markdown-display';
 
 import { useTheme } from '../context/ThemeContext';
 import { useChat } from '../context/ChatContext';
@@ -39,12 +40,12 @@ export default function ChatScreen({ navigation }) {
     stopGeneration,
     createNewConversation,
   } = useChat();
-  const { 
-    selectedModel, 
-    downloadedModels, 
-    selectModel, 
-    availableModels, 
-    customModels = [] 
+  const {
+    selectedModel,
+    downloadedModels,
+    selectModel,
+    availableModels,
+    customModels = []
   } = useModel();
 
   const [inputText, setInputText] = useState('');
@@ -56,6 +57,46 @@ export default function ChatScreen({ navigation }) {
   const tools = getLandingPageTools();
   const isEmpty = !currentConversation || messages.length === 0;
 
+  const markdownRules = {
+    text: (node, children, parent, styles, inheritedStyles = {}) => (
+      <Text key={node.key} style={[inheritedStyles, styles.text]} selectable={true}>
+        {node.content}
+      </Text>
+    ),
+    textgroup: (node, children, parent, styles) => (
+      <Text key={node.key} style={styles.textgroup} selectable={true}>
+        {children}
+      </Text>
+    ),
+    code_inline: (node, children, parent, styles, inheritedStyles = {}) => (
+      <Text key={node.key} style={[inheritedStyles, styles.code_inline]} selectable={true}>
+        {node.content}
+      </Text>
+    ),
+    code_block: (node, children, parent, styles, inheritedStyles = {}) => {
+      let content = node.content;
+      if (typeof content === 'string' && content.endsWith('\n')) {
+        content = content.substring(0, content.length - 1);
+      }
+      return (
+        <Text key={node.key} style={[inheritedStyles, styles.code_block]} selectable={true}>
+          {content}
+        </Text>
+      );
+    },
+    fence: (node, children, parent, styles, inheritedStyles = {}) => {
+      let content = node.content;
+      if (typeof content === 'string' && content.endsWith('\n')) {
+        content = content.substring(0, content.length - 1);
+      }
+      return (
+        <Text key={node.key} style={[inheritedStyles, styles.fence]} selectable={true}>
+          {content}
+        </Text>
+      );
+    },
+  };
+
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
@@ -65,14 +106,6 @@ export default function ChatScreen({ navigation }) {
     };
   }, []);
 
-  // Auto scroll to bottom
-  useEffect(() => {
-    if (messages.length > 0 && flatListRef.current) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    }
-  }, [messages]);
 
   const handleSend = async () => {
     if (!inputText.trim() || isGenerating) return;
@@ -124,9 +157,19 @@ export default function ChatScreen({ navigation }) {
           ]}
         >
           {item.content ? (
-            <Text style={[styles.messageText, { color: colors.text }]}>
+            <Markdown
+              rules={markdownRules}
+              style={{
+                body: { color: colors.text, fontSize: FONT_SIZES.md, lineHeight: 22 },
+                strong: { fontWeight: 'bold', color: colors.text },
+                em: { fontStyle: 'italic', color: colors.text },
+                code_inline: { backgroundColor: colors.border, color: colors.text, borderRadius: 4, padding: 2 },
+                fence: { backgroundColor: colors.border, color: colors.text, borderRadius: 8, padding: 10, marginTop: 5, marginBottom: 5 },
+                code_block: { backgroundColor: colors.border, color: colors.text, borderRadius: 8, padding: 10, marginTop: 5, marginBottom: 5 },
+              }}
+            >
               {item.content}
-            </Text>
+            </Markdown>
           ) : isStreaming ? (
             <View style={styles.thinkingRow}>
               <View style={styles.thinkingDots}>
